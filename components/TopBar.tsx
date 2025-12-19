@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Moon, Sun, Menu, Globe, ShieldCheck } from 'lucide-react';
+import { Search, Moon, Sun, Menu, Globe, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useApp } from './AppContext';
 
 interface TopBarProps {
@@ -9,7 +9,7 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ toggleSidebar }) => {
   const { 
     theme, toggleTheme, language, setLanguage, 
-    searchQuery, setSearchQuery, currentView, setCurrentView 
+    searchQuery, setSearchQuery, currentView, setCurrentView, currentUser
   } = useApp();
 
   return (
@@ -24,7 +24,7 @@ const TopBar: React.FC<TopBarProps> = ({ toggleSidebar }) => {
           <Menu size={24} />
         </button>
 
-        {/* Search Bar - Hidden in Admin View */}
+        {/* Search Bar or User Info */}
         {currentView === 'library' ? (
           <div className="flex-1 max-w-xl relative">
             <div className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${language === 'ar' ? 'right-3' : 'left-3'}`}>
@@ -44,22 +44,32 @@ const TopBar: React.FC<TopBarProps> = ({ toggleSidebar }) => {
           </div>
         ) : (
           <div className="flex-1 font-bold text-indigo-500 flex items-center gap-2">
-            <ShieldCheck size={24} />
-            <span className="hidden sm:inline">Admin Terminal</span>
+            <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center">
+              {currentUser?.role === 'admin' ? <ShieldCheck size={20} /> : <UserIcon size={20} />}
+            </div>
+            <span className={`text-lg ${language === 'ar' ? 'font-arabic' : 'font-sans'}`}>
+              {language === 'ar' ? 'أهلاً، ' : 'Welcome, '} {currentUser?.name}
+            </span>
           </div>
         )}
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 md:gap-4">
           
-          {/* ProAi Access Button */}
+          {/* Access Button */}
           {currentView === 'library' && (
             <button
               onClick={() => setCurrentView('admin')}
               className="group flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600/90 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
             >
-              <ShieldCheck size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="hidden md:inline">ProAi</span>
+              {currentUser?.role === 'admin' ? (
+                <ShieldCheck size={18} className="group-hover:scale-110 transition-transform" />
+              ) : (
+                <UserIcon size={18} className="group-hover:scale-110 transition-transform" />
+              )}
+              <span className={`hidden md:inline ${language === 'ar' ? 'font-arabic' : ''}`}>
+                {currentUser?.role === 'admin' ? 'ProAi' : (language === 'ar' ? 'حسابي' : 'Profile')}
+              </span>
             </button>
           )}
 
