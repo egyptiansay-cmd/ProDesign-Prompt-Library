@@ -1,5 +1,14 @@
 export type Language = 'en' | 'ar';
 export type Theme = 'light' | 'dark';
+export type View = 'library' | 'admin';
+
+export interface User {
+  id: string;
+  name: string;
+  code: string;
+  link: string;
+  role?: 'admin' | 'user';
+}
 
 export interface PromptData {
   id: number;
@@ -23,6 +32,13 @@ export interface AppContextType {
   setSelectedCategory: (category: string) => void;
   toastMessage: string | null;
   showToast: (msg: string) => void;
+  // Admin & User Session Features
+  currentView: View;
+  setCurrentView: (view: View) => void;
+  users: User[];
+  addUser: (user: User) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
 }
 
 export interface Category {

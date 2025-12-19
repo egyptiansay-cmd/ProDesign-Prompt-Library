@@ -1,16 +1,21 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, PropsWithChildren } from 'react';
-import { AppContextType, Language, Theme } from '../types';
+import React, { createContext, useContext, useState, useEffect, PropsWithChildren } from 'react';
+import { AppContextType, Language, Theme, View, User } from '../types';
+import { INITIAL_USERS } from '../usersData';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar'); // Default to Arabic as requested
   const [theme, setTheme] = useState<Theme>('dark');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  // Admin & View State
+  const [currentView, setCurrentView] = useState<View>('library');
+  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Handle Theme Change
   useEffect(() => {
     const root = window.document.documentElement;
     if (theme === 'dark') {
@@ -20,7 +25,6 @@ export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
     }
   }, [theme]);
 
-  // Handle Language Direction
   useEffect(() => {
     const root = window.document.documentElement;
     root.setAttribute('dir', language === 'ar' ? 'rtl' : 'ltr');
@@ -36,6 +40,10 @@ export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  const addUser = (user: User) => {
+    setUsers(prev => [...prev, user]);
+  };
+
   return (
     <AppContext.Provider value={{
       language,
@@ -47,7 +55,13 @@ export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
       selectedCategory,
       setSelectedCategory,
       toastMessage,
-      showToast
+      showToast,
+      currentView,
+      setCurrentView,
+      users,
+      addUser,
+      currentUser,
+      setCurrentUser
     }}>
       {children}
     </AppContext.Provider>
