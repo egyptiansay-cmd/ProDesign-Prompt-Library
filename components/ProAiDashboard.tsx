@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from './AppContext';
 import { 
   LayoutGrid, UserPlus, Lock, ShieldCheck, 
-  ExternalLink, LogOut, Globe, Copy, Check, User as UserIcon
+  ExternalLink, LogOut, Globe, Copy, Check, User as UserIcon, Phone
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -12,20 +12,21 @@ const ProAiDashboard: React.FC = () => {
     showToast, currentUser, setCurrentUser 
   } = useApp();
   
-  // شاشة الدخول - حالات الإدخال
+  // Login State
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   
-  // لوحة تحكم الأدمن - حالات إضافة مستخدم جديد
+  // Admin Panel States
   const [newName, setNewName] = useState('');
   const [newCode, setNewCode] = useState('');
   const [newLink, setNewLink] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const [copyingId, setCopyingId] = useState<string | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // التحقق من بيانات الأدمن
+    // Check Admin credentials (hardcoded logic for the 'ProAi' admin)
     if (usernameInput === 'ProAi' && passwordInput === 'proai') {
       const admin: User = { id: 'admin', name: 'ProAi', code: 'proai', link: '#', role: 'admin' };
       setCurrentUser(admin);
@@ -34,7 +35,7 @@ const ProAiDashboard: React.FC = () => {
       return;
     }
 
-    // التحقق من المستخدمين العاديين من المصفوفة الثابتة
+    // Check Users from the Central INITIAL_USERS list
     const foundUser = users.find(u => u.name.toLowerCase() === usernameInput.toLowerCase() && u.code === passwordInput);
     if (foundUser) {
       setCurrentUser({ ...foundUser, role: 'user' });
@@ -47,9 +48,9 @@ const ProAiDashboard: React.FC = () => {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setCurrentView('admin'); // العودة لشاشة الدخول
+    setCurrentView('admin');
     setUsernameInput('');
-    setPasswordInput('');
+    passwordInput;
   };
 
   const handleAddUser = (e: React.FormEvent) => {
@@ -63,22 +64,25 @@ const ProAiDashboard: React.FC = () => {
       id: Date.now().toString(),
       name: newName,
       code: newCode,
+      phone: newPhone,
       link: newLink,
       role: 'user'
     };
     
+    // TEMPORARY ADD (Local Session Only)
+    // To make this permanent, it must be added to usersData.ts
     addUser(newUser);
     setNewName('');
     setNewCode('');
     setNewLink('');
-    showToast(language === 'en' ? 'User added successfully' : 'تم إضافة المستخدم بنجاح');
+    setNewPhone('');
+    showToast(language === 'en' ? 'User added to session. Note: This is not permanent.' : 'تمت الإضافة للجلسة الحالية. تنبيه: هذا ليس تعديلاً دائماً.');
   };
 
-  // دالة نسخ بيانات المستخدم بشكل منسق حسب طلب المطور
   const handleCopyUserDetails = (user: User) => {
     const message = language === 'ar' 
-      ? `تفاصيل الدخول الخاصة بك لنظام\nPROMPT Library -Pro@Design\nAyman El.Fakharany@\n\n👤 الاسم: ${user.name}\n🔑 الرمز السري: ${user.code}\n🌐 الرابط: ${user.link}`
-      : `Your system access details for\nPROMPT Library -Pro@Design\nAyman El.Fakharany@\n\n👤 Name: ${user.name}\n🔑 Passcode: ${user.code}\n🌐 Link: ${user.link}`;
+      ? `تفاصيل الدخول الخاصة بك لنظام\nPROMPT Library -Pro@Design\nAyman El.Fakharany@\n\n👤 الاسم: ${user.name}\n🔑 الرمز السري: ${user.code}\n📱 الهاتف: ${user.phone || 'N/A'}\n🌐 الرابط: ${user.link}`
+      : `Your system access details for\nPROMPT Library -Pro@Design\nAyman El.Fakharany@\n\n👤 Name: ${user.name}\n🔑 Passcode: ${user.code}\n📱 Phone: ${user.phone || 'N/A'}\n🌐 Link: ${user.link}`;
     
     navigator.clipboard.writeText(message);
     setCopyingId(user.id);
@@ -86,11 +90,9 @@ const ProAiDashboard: React.FC = () => {
     setTimeout(() => setCopyingId(null), 2000);
   };
 
-  // 1. شاشة تسجيل الدخول الإجبارية
   if (!currentUser) {
     return (
       <div className="flex-1 min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900/95 relative overflow-hidden">
-        {/* عناصر خلفية جمالية */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
 
@@ -161,21 +163,19 @@ const ProAiDashboard: React.FC = () => {
     );
   }
 
-  // 2. لوحة التحكم (الأدمن والمستخدم)
   const isAdmin = currentUser.role === 'admin';
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-8 animate-[fadeIn_0.4s_ease-out]">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className={language === 'ar' ? 'font-arabic' : 'font-sans'}>
             <div className="flex items-center gap-2 text-indigo-500 mb-1">
               {isAdmin ? <ShieldCheck size={20} /> : <UserIcon size={20} />}
               <span className="text-xs font-bold uppercase tracking-wider">
                  {isAdmin 
-                    ? (language === 'ar' ? 'نظام التحكم' : 'Admin System') 
+                    ? (language === 'ar' ? 'نظام التحكم المركزي' : 'Central Admin System') 
                     : (language === 'ar' ? 'حساب المستخدم' : 'User Account')}
               </span>
             </div>
@@ -184,6 +184,7 @@ const ProAiDashboard: React.FC = () => {
                 ? (language === 'ar' ? 'لوحة تحكم Pro@Design' : 'Pro@Design Control Center')
                 : (language === 'ar' ? 'إعدادات الحساب الشخصي' : 'Personal Account Settings')}
             </h1>
+            {isAdmin && <p className="text-xs text-orange-500 font-bold mt-2 uppercase tracking-tight">* ملاحظة: البيانات مركزية وتتطلب تحديث ملف الكود لتعديلها نهائياً</p>}
           </div>
           
           <div className="flex gap-3">
@@ -206,7 +207,6 @@ const ProAiDashboard: React.FC = () => {
 
         {isAdmin ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* قائمة المستخدمين للأدمن فقط */}
             <div className="lg:col-span-2 space-y-4">
               <div className="bg-white dark:bg-slate-900/40 rounded-3xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-xl">
                 <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
@@ -222,7 +222,7 @@ const ProAiDashboard: React.FC = () => {
                       <tr>
                         <th className="px-6 py-4">{language === 'ar' ? 'الاسم' : 'Name'}</th>
                         <th className="px-6 py-4">{language === 'ar' ? 'الرمز' : 'Code'}</th>
-                        <th className="px-6 py-4">{language === 'ar' ? 'الرابط' : 'Link'}</th>
+                        <th className="px-6 py-4">{language === 'ar' ? 'الهاتف' : 'Phone'}</th>
                         <th className="px-6 py-4 text-center">{language === 'ar' ? 'إجراء' : 'Action'}</th>
                       </tr>
                     </thead>
@@ -231,16 +231,10 @@ const ProAiDashboard: React.FC = () => {
                         <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
                           <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">{user.name}</td>
                           <td className="px-6 py-4 font-mono text-indigo-500 text-xs">{user.code}</td>
-                          <td className="px-6 py-4">
-                            <a href={user.link} target="_blank" rel="noopener" className="text-gray-400 hover:text-indigo-500 flex items-center gap-1 transition-colors text-xs">
-                              <span className="truncate max-w-[120px]">{user.link}</span>
-                              <ExternalLink size={12} />
-                            </a>
-                          </td>
+                          <td className="px-6 py-4 text-xs text-gray-400 font-mono">{user.phone || '---'}</td>
                           <td className="px-6 py-4 text-center">
                             <button
                               onClick={() => handleCopyUserDetails(user)}
-                              title={language === 'ar' ? 'نسخ بيانات الدخول' : 'Copy access details'}
                               className={`p-2 rounded-lg transition-all ${copyingId === user.id ? 'bg-green-500 text-white' : 'bg-indigo-600/10 text-indigo-500 hover:bg-indigo-600 hover:text-white'}`}
                             >
                               {copyingId === user.id ? <Check size={16} /> : <Copy size={16} />}
@@ -254,7 +248,6 @@ const ProAiDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* فورم إضافة مستخدم للأدمن فقط */}
             <div className="lg:col-span-1">
               <div className="bg-white dark:bg-slate-900/40 rounded-3xl border border-gray-200 dark:border-white/10 p-6 shadow-xl sticky top-24">
                 <div className="flex items-center gap-3 mb-6">
@@ -262,22 +255,22 @@ const ProAiDashboard: React.FC = () => {
                     <UserPlus size={20} />
                   </div>
                   <h3 className={`font-bold text-lg ${language === 'ar' ? 'font-arabic' : 'font-sans'}`}>
-                    {language === 'ar' ? 'إضافة مستخدم جديد' : 'New User'}
+                    {language === 'ar' ? 'إضافة مؤقتة (للجلسة)' : 'Session-Only Add'}
                   </h3>
                 </div>
                 <form onSubmit={handleAddUser} className="space-y-4">
                   <input type="text" placeholder="الاسم" value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-xl px-4 py-3 outline-none text-sm" />
                   <input type="text" placeholder="الرمز السري" value={newCode} onChange={e => setNewCode(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-xl px-4 py-3 outline-none text-sm" />
+                  <input type="text" placeholder="الهاتف" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-xl px-4 py-3 outline-none text-sm" />
                   <input type="url" placeholder="رابط الموقع" value={newLink} onChange={e => setNewLink(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-xl px-4 py-3 outline-none text-sm" />
                   <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all">
-                    {language === 'ar' ? 'تأكيد الإضافة' : 'Add User'}
+                    {language === 'ar' ? 'إضافة للجلسة فقط' : 'Add for Session'}
                   </button>
                 </form>
               </div>
             </div>
           </div>
         ) : (
-          /* واجهة المستخدم العادي - تظهر بياناته الشخصية فقط */
           <div className="max-w-2xl mx-auto">
             <div className="bg-white dark:bg-slate-900/40 rounded-3xl border border-gray-200 dark:border-white/10 p-10 shadow-xl text-center">
                <div className="w-24 h-24 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500 mx-auto mb-6">
@@ -287,7 +280,7 @@ const ProAiDashboard: React.FC = () => {
                  {currentUser.name}
                </h2>
                <p className="text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-widest text-xs font-bold">
-                 Authorized System User
+                 Authorized Central System User
                </p>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -299,6 +292,10 @@ const ProAiDashboard: React.FC = () => {
                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">{language === 'ar' ? 'الرمز السري' : 'Passcode'}</p>
                    <p className="font-mono text-indigo-500 font-bold tracking-widest">{currentUser.code}</p>
                  </div>
+                 <div className="p-4 rounded-2xl bg-gray-50 dark:bg-black/20 md:col-span-2">
+                   <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</p>
+                   <p className="font-medium text-gray-900 dark:text-gray-200">{currentUser.phone || '---'}</p>
+                 </div>
                </div>
 
                <button
@@ -306,7 +303,7 @@ const ProAiDashboard: React.FC = () => {
                   className="mt-8 flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
                >
                  {copyingId === currentUser.id ? <Check size={20} /> : <Copy size={20} />}
-                 {language === 'ar' ? 'نسخ بياناتي' : 'Copy My Details'}
+                 {language === 'ar' ? 'نسخ بياناتي الشخصية' : 'Copy My Details'}
                </button>
             </div>
           </div>

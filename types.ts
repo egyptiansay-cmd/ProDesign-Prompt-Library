@@ -5,7 +5,8 @@ export type View = 'library' | 'admin';
 export interface User {
   id: string;
   name: string;
-  code: string;
+  code: string; // Acts as password/passcode
+  phone?: string; // Newly requested field
   link: string;
   role?: 'admin' | 'user';
 }
@@ -32,7 +33,7 @@ export interface AppContextType {
   setSelectedCategory: (category: string) => void;
   toastMessage: string | null;
   showToast: (msg: string) => void;
-  // Admin & User Session Features
+  // Admin & User Session Features (State-only, no persistence)
   currentView: View;
   setCurrentView: (view: View) => void;
   users: User[];

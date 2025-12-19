@@ -5,13 +5,16 @@ import { INITIAL_USERS } from '../usersData';
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
-  const [language, setLanguage] = useState<Language>('ar'); // Default to Arabic as requested
+  // Localization and UI Theme (Purely presentational state)
+  const [language, setLanguage] = useState<Language>('ar');
   const [theme, setTheme] = useState<Theme>('dark');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
-  // Admin & View State
+  // 🔐 USER & SESSION MANAGEMENT (No Persistence / No LocalStorage)
+  // All user modifications in this state are temporary for the current session.
+  // Permanent changes must be made in 'usersData.ts' and redeployed.
   const [currentView, setCurrentView] = useState<View>('library');
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -41,6 +44,7 @@ export const AppContextProvider = ({ children }: PropsWithChildren<{}>) => {
   };
 
   const addUser = (user: User) => {
+    // Note: This only adds to the local state for the current session.
     setUsers(prev => [...prev, user]);
   };
 
